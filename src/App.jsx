@@ -123,6 +123,29 @@ const DEFAULT_SOCIALS = [
   },
 ];
 
+const SOCIALS_STORAGE_KEY = "ziggy-portfolio-social-links";
+
+const readStoredSocialLinks = () => {
+  if (typeof window === "undefined") {
+    return DEFAULT_SOCIALS;
+  }
+
+  try {
+    const saved = window.localStorage.getItem(SOCIALS_STORAGE_KEY);
+    if (!saved) return DEFAULT_SOCIALS;
+
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_SOCIALS;
+
+    return parsed.map((social) => ({
+      ...DEFAULT_SOCIALS.find((defaultSocial) => defaultSocial.label === social.label),
+      ...social,
+    }));
+  } catch (_error) {
+    return DEFAULT_SOCIALS;
+  }
+};
+
 // ─── Styles ──────────────────────────────────────────────────
 
 const CSS = `
@@ -260,7 +283,7 @@ const ADMIN_PASSWORD = "constancy22";
 
 export default function Portfolio() {
   const [projects, setProjects] = useState(DEFAULT_PROJECTS);
-  const [socialLinks, setSocialLinks] = useState(DEFAULT_SOCIALS);
+  const [socialLinks, setSocialLinks] = useState(() => readStoredSocialLinks());
   const [showForm, setShowForm] = useState(false);
   const [screen, setScreen] = useState("portfolio");
   const [password, setPassword] = useState("");
@@ -274,6 +297,12 @@ export default function Portfolio() {
     tags: "",
     url: "",
   });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SOCIALS_STORAGE_KEY, JSON.stringify(socialLinks));
+    }
+  }, [socialLinks]);
 
   useEffect(() => {
     const style = document.createElement("style");
