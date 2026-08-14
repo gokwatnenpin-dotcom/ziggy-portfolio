@@ -22,7 +22,7 @@ export const DEFAULT_SOCIALS = [
   {
     label: "X",
     handle: "@ziggy_dev",
-    url: "https://x.com/ziggy_dev",
+    url: "https://x.com/gokwatnenpin",
     Icon: Globe,
   },
   {
@@ -33,14 +33,14 @@ export const DEFAULT_SOCIALS = [
   },
   {
     label: "Discord",
-    handle: "ziggy.dev",
-    url: "https://discord.com",
+    handle: "ziggy_dev",
+    url: "https://discord.com/ziggy_2958",
     Icon: MessageSquareText,
   },
   {
     label: "Telegram",
-    handle: "@ziggy_2958Bot",
-    url: "https://t.me/ziggy_2958Bot",
+    handle: "@ziggy_2958",
+    url: "https://t.me/ziggy_2958",
     Icon: Send,
   },
 ];
