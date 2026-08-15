@@ -15,7 +15,7 @@ export function AdminDashboard({
 }) {
   return (
     <div className="min-h-screen bg-[#0b0b0b] px-5 py-20 text-white">
-      <div className="mx-auto max-w-[1100px]">
+      <div className="mx-auto max-w-275">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#a7a7a7]">
@@ -145,7 +145,7 @@ export function AdminDashboard({
               <div
                 key={p.id}
                 onClick={() => openProject(p.url)}
-                className={`relative flex min-h-[210px] cursor-pointer flex-col gap-2.5 border p-7 transition-colors duration-200 ${
+                className={`relative flex min-h-52.5 cursor-pointer flex-col gap-2.5 border p-7 transition-colors duration-200 ${
                   p.isPlaceholder ? "border-dashed border-[#1b1b1b] bg-[#0a0a0a]" : "border-[#0f0f0f] bg-black"
                 } hover:bg-[#0d0d0d]`}
               >
@@ -162,7 +162,7 @@ export function AdminDashboard({
                         handleDeleteProject(p.id);
                       }}
                       aria-label={`Delete ${p.title}`}
-                      className="inline-flex h-[22px] w-[22px] items-center justify-center border border-[#2a2a2a] bg-transparent p-0 text-[#b0b0b0]"
+                      className="inline-flex h-5.5 w-5.5 items-center justify-center border border-[#2a2a2a] bg-transparent p-0 text-[#b0b0b0]"
                     >
                       <Trash2 size={12} />
                     </button>

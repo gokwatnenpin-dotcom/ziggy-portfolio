@@ -192,7 +192,7 @@ export function PortfolioView({
               <div
                 key={p.id}
                 onClick={() => openProject(p.url)}
-                className={`pj-card relative flex min-h-[210px] cursor-pointer flex-col gap-2.5 border p-7 transition-colors duration-200 ${
+                className={`pj-card relative flex min-h-52.5 cursor-pointer flex-col gap-2.5 border p-7 transition-colors duration-200 ${
                   p.isPlaceholder ? "border-dashed border-[#1b1b1b] bg-[#0a0a0a]" : "border-[#0f0f0f] bg-black"
                 } hover:bg-[#0d0d0d]`}
               >

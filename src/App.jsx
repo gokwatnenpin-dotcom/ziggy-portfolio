@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { DEFAULT_SOCIALS } from "./socials";
-import { readPortfolioData, writePortfolioData } from "./lib/supabase";
 import { PortfolioView } from "./components/PortfolioView";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { AdminLogin } from "./components/AdminLogin";
@@ -81,30 +80,22 @@ export default function App() {
   });
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadSavedData = async () => {
-      const savedProjects = await readPortfolioData(STORAGE_KEYS.projects, DEFAULT_PROJECTS);
-      const savedSocials = await readPortfolioData(STORAGE_KEYS.socials, DEFAULT_LINKS);
-
-      if (!isMounted) return;
-      setProjects(savedProjects);
-      setSocialLinks(savedSocials);
-    };
-
-    loadSavedData();
-
-    return () => {
-      isMounted = false;
-    };
+    const savedProjects = readStorage(STORAGE_KEYS.projects, DEFAULT_PROJECTS);
+    const savedSocials = readStorage(STORAGE_KEYS.socials, DEFAULT_LINKS);
+    setProjects(savedProjects);
+    setSocialLinks(savedSocials);
   }, []);
 
   useEffect(() => {
-    writePortfolioData(STORAGE_KEYS.projects, projects);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(projects));
+    }
   }, [projects]);
 
   useEffect(() => {
-    writePortfolioData(STORAGE_KEYS.socials, socialLinks);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEYS.socials, JSON.stringify(socialLinks));
+    }
   }, [socialLinks]);
 
   const scrollTo = (id) => {
