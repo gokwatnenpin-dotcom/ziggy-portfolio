@@ -1,7 +1,17 @@
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink, Send, MessageCircle, Globe, MessageSquareText } from "lucide-react";
 
 const eyeClass = "font-mono text-[10px] uppercase tracking-[0.18em] text-[#444]";
 const H2Class = "font-syne mt-3 mb-12 text-[clamp(30px,5vw,50px)] font-extrabold leading-[1.05] tracking-[-0.03em] text-white";
+
+const ICON_MAP = {
+  GitHub: ExternalLink,
+  Email: Send,
+  WhatsApp: MessageCircle,
+  X: Globe,
+  LinkedIn: Globe,
+  Discord: MessageSquareText,
+  Telegram: Send,
+};
 
 const LEARNED = [
   ["HTML & CSS", "Frontend"],
@@ -262,29 +272,32 @@ export function PortfolioView({
         )}
 
         <div className="flex max-w-[440px] flex-col gap-px bg-[#141414]">
-          {socialLinks.map((s) => (
-            <a
-              key={s.label}
-              href={s.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="soc-row group flex items-center justify-between border-l-2 border-transparent bg-black px-5 py-5 transition-colors hover:border-l-white hover:bg-[#111]"
-            >
-              <div className="flex items-center gap-3.5">
-                <s.Icon size={16} className="stroke-[#444] transition-colors duration-200 group-hover:stroke-white" />
+          {socialLinks.map((s) => {
+            const IconComponent = ICON_MAP[s.label];
+            return (
+              <a
+                key={s.label}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="soc-row group flex items-center justify-between border-l-2 border-transparent bg-black px-5 py-5 transition-colors hover:border-l-white hover:bg-[#111]"
+              >
+                <div className="flex items-center gap-3.5">
+                  {IconComponent && <IconComponent size={16} className="stroke-[#444] transition-colors duration-200 group-hover:stroke-white" />}
 
-                <div>
-                  <p className="soc-label font-syne m-0 text-[13px] font-bold text-[#e7e7e7] transition-colors duration-200">
-                    {s.label}
-                  </p>
+                  <div>
+                    <p className="soc-label font-syne m-0 text-[13px] font-bold text-[#e7e7e7] transition-colors duration-200">
+                      {s.label}
+                    </p>
 
-                  <p className="font-mono mt-0.5 text-[10px] text-[#b0b0b0]">{s.handle}</p>
+                    <p className="font-mono mt-0.5 text-[10px] text-[#b0b0b0]">{s.handle}</p>
+                  </div>
                 </div>
-              </div>
 
-              <ExternalLink size={11} className="stroke-[#2a2a2a]" />
-            </a>
-          ))}
+                <ExternalLink size={11} className="stroke-[#2a2a2a]" />
+              </a>
+            );
+          })}
         </div>
 
         <div className="mt-20 flex flex-wrap items-center justify-between gap-2 border-t border-[#0d0d0d] pt-5">
