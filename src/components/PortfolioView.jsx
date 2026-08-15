@@ -71,8 +71,12 @@ export function PortfolioView({
           Frontend Dev · Python Learner · Security Learner
         </p>
 
-        <h1 className="font-syne mb-11 text-[clamp(68px,15vw,180px)] font-extrabold leading-[0.88] tracking-[-0.04em] text-white">
+        <h1 className="font-syne mb-11 text-[clamp(68px,15vw,180px)] font-bold leading-[0.88] tracking-[-0.04em] text-white">
           ZIGGY<span className="cursor-blink ml-1 inline-block h-[0.83em] w-[0.07em] align-middle bg-white" />
+        </h1>
+
+        <h1 className="font-syne mb-11 text-[clamp(68px,15vw,180px)] font-semiblod leading-[0.88] tracking-[-0.04em] text-white">
+          Gokwat Nenpin Isaac<span className="cursor-blink ml-1 inline-block h-[0.83em] w-[0.07em] align-middle bg-white" />
         </h1>
 
         <div className="flex flex-wrap items-end justify-between gap-5">
