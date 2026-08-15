@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
-import {
-  ExternalLink,
-  ChevronDown,
-  Send,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { ExternalLink, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { DEFAULT_SOCIALS } from "./socials";
 
-// ─── Data ─────────────────────────────────────────────────────
+const STORAGE_KEYS = {
+  projects: "ziggy-portfolio-projects",
+  socials: "ziggy-portfolio-socials",
+};
+
+const readStorage = (key, fallback) => {
+  if (typeof window === "undefined") return fallback;
+
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 const LEARNED = [
   ["HTML & CSS", "Frontend"],
@@ -76,145 +84,18 @@ const DEFAULT_PROJECTS = [
 ];
 
 const DEFAULT_LINKS = DEFAULT_SOCIALS.map((social) => ({ ...social }));
-
-// ─── Styles ──────────────────────────────────────────────────
-
-const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap');
-
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-
-  html, body {
-    margin: 0;
-    scroll-behavior: smooth;
-  }
-
-  body {
-    background: #0b0b0b;
-    color: #f5f5f5;
-  }
-
-  .pf-root {
-    font-family: 'Syne', sans-serif;
-    background: #0b0b0b;
-    color: #f5f5f5;
-    min-height: 100vh;
-  }
-
-  /* Blinking cursor */
-  .cur {
-    display: inline-block;
-    width: 0.07em;
-    height: 0.83em;
-    background: #fff;
-    vertical-align: middle;
-    margin-left: 0.04em;
-    animation: blink 1s step-end infinite;
-  }
-
-  @keyframes blink {
-    0%, 100% {
-      opacity: 1;
-    }
-
-    50% {
-      opacity: 0;
-    }
-  }
-
-  @keyframes pulse {
-    0%, 100% {
-      opacity: .9;
-    }
-
-    50% {
-      opacity: .25;
-    }
-  }
-
-  /* Nav */
-  .nav-link:hover {
-    color: #fff !important;
-  }
-
-  /* CTAs */
-  .btn-solid:hover {
-    background: #fff !important;
-    color: #000 !important;
-  }
-
-  .btn-solid:hover svg {
-    stroke: #000;
-  }
-
-  .btn-ghost:hover {
-    border-color: #fff !important;
-    color: #fff !important;
-  }
-
-  /* Skill rows */
-  .sk-row:hover {
-    background: #111 !important;
-    border-left-color: #fff !important;
-  }
-
-  .sk-row:hover .sk-name {
-    color: #fff !important;
-  }
-
-  /* Project cards */
-  .pj-card:hover {
-    background: #0d0d0d !important;
-  }
-
-  .pj-card:hover .pj-title {
-    color: #fff !important;
-  }
-
-  .pj-card:hover .pj-icon {
-    stroke: #666 !important;
-  }
-
-  /* Social rows */
-  .soc-row:hover {
-    background: #111 !important;
-    border-left-color: #fff !important;
-  }
-
-  .soc-row:hover .soc-label {
-    color: #fff !important;
-  }
-
-  .soc-row:hover svg {
-    stroke: #fff !important;
-  }
-
-  @media (max-width: 700px) {
-    .pf-root nav {
-      padding: 16px 20px !important;
-    }
-
-    .pf-root section {
-      padding-left: 20px !important;
-      padding-right: 20px !important;
-    }
-
-    .pf-root section[style*="gridTemplateColumns: 140px"] {
-      grid-template-columns: 1fr !important;
-      gap: 12px !important;
-    }
-  }
-`;
-
-// ─── Component ───────────────────────────────────────────────
-
 const ADMIN_PASSWORD = "constancy22";
 
+const eyeClass = "font-mono text-[10px] uppercase tracking-[0.18em] text-[#444]";
+const H2Class = "font-syne mt-3 mb-12 text-[clamp(30px,5vw,50px)] font-extrabold leading-[1.05] tracking-[-0.03em] text-white";
+
 export default function Portfolio() {
-  const [projects, setProjects] = useState(DEFAULT_PROJECTS);
-  const [socialLinks, setSocialLinks] = useState(DEFAULT_LINKS);
+  const [projects, setProjects] = useState(() =>
+    readStorage(STORAGE_KEYS.projects, DEFAULT_PROJECTS)
+  );
+  const [socialLinks, setSocialLinks] = useState(() =>
+    readStorage(STORAGE_KEYS.socials, DEFAULT_LINKS)
+  );
   const [showForm, setShowForm] = useState(false);
   const [screen, setScreen] = useState("portfolio");
   const [password, setPassword] = useState("");
@@ -230,16 +111,16 @@ export default function Portfolio() {
   });
 
   useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = CSS;
-    document.head.appendChild(style);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(projects));
+    }
+  }, [projects]);
 
-    return () => {
-      try {
-        document.head.removeChild(style);
-      } catch (_) {}
-    };
-  }, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEYS.socials, JSON.stringify(socialLinks));
+    }
+  }, [socialLinks]);
 
   const scrollTo = (id) => {
     if (typeof document === "undefined") return;
@@ -256,10 +137,7 @@ export default function Portfolio() {
 
   const handleProjectChange = (event) => {
     const { name, value } = event.target;
-    setProjectForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
+    setProjectForm((current) => ({ ...current, [name]: value }));
   };
 
   const handleAddProject = (event) => {
@@ -352,78 +230,33 @@ export default function Portfolio() {
     );
   };
 
-  const mono = {
-    fontFamily: "'Space Mono', monospace",
-  };
-
-  const syne = {
-    fontFamily: "'Syne', sans-serif",
-  };
-
-  const line = {
-    borderBottom: "1px solid #111",
-  };
-
-  const eye = {
-    ...mono,
-    fontSize: "10px",
-    color: "#444",
-    letterSpacing: "0.2em",
-    textTransform: "uppercase",
-  };
-
-  const H2 = {
-    ...syne,
-    fontSize: "clamp(30px,5vw,50px)",
-    fontWeight: 800,
-    letterSpacing: "-0.03em",
-    lineHeight: 1.05,
-    margin: "12px 0 48px",
-  };
-
   if (screen === "login") {
     return (
-      <div className="pf-root" style={{ display: "grid", placeItems: "center", minHeight: "100vh", padding: "20px" }}>
-        <div style={{ width: "100%", maxWidth: "440px", background: "#0d0d0d", border: "1px solid #1d1d1d", padding: "28px" }}>
-          <p style={{ ...mono, fontSize: "10px", color: "#a7a7a7", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "12px" }}>
+      <div className="grid min-h-screen place-items-center bg-[#0b0b0b] p-5 text-white">
+        <div className="w-full max-w-[440px] border border-[#1d1d1d] bg-[#0d0d0d] p-7">
+          <p className="font-mono mb-3 text-[10px] uppercase tracking-[0.18em] text-[#a7a7a7]">
             Admin access
           </p>
 
-          <h2 style={{ ...syne, fontSize: "28px", margin: "0 0 20px" }}>ziggy.dev</h2>
+          <h2 className="font-syne mb-5 text-3xl text-white">ziggy.dev</h2>
 
-          <form onSubmit={handleAdminLogin} style={{ display: "grid", gap: "14px" }}>
+          <form onSubmit={handleAdminLogin} className="grid gap-3.5">
             <input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Password"
-              style={{
-                background: "#111",
-                color: "#f5f5f5",
-                border: "1px solid #2b2b2b",
-                padding: "12px 14px",
-                fontSize: "14px",
-              }}
+              className="border border-[#2b2b2b] bg-[#111] px-3.5 py-3 text-sm text-white outline-none placeholder:text-[#7a7a7a] focus:border-white"
             />
 
             {loginError && (
-              <p style={{ ...mono, fontSize: "10px", color: "#ff8c8c", margin: 0 }}>{loginError}</p>
+              <p className="font-mono text-[10px] text-[#ff8c8c]">{loginError}</p>
             )}
 
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <div className="flex flex-wrap gap-2.5">
               <button
                 type="submit"
-                style={{
-                  ...mono,
-                  background: "#f5f5f5",
-                  color: "#111",
-                  border: "none",
-                  padding: "10px 14px",
-                  cursor: "pointer",
-                  fontSize: "10px",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
+                className="font-mono border border-[#f5f5f5] bg-[#f5f5f5] px-3.5 py-2.5 text-[10px] uppercase tracking-[0.08em] text-[#111] transition hover:bg-white"
               >
                 Login
               </button>
@@ -431,17 +264,7 @@ export default function Portfolio() {
               <button
                 type="button"
                 onClick={handleAdminBack}
-                style={{
-                  ...mono,
-                  background: "transparent",
-                  color: "#d0d0d0",
-                  border: "1px solid #2a2a2a",
-                  padding: "10px 14px",
-                  cursor: "pointer",
-                  fontSize: "10px",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
+                className="font-mono border border-[#2a2a2a] bg-transparent px-3.5 py-2.5 text-[10px] uppercase tracking-[0.08em] text-[#d0d0d0] transition hover:border-white hover:text-white"
               >
                 Back
               </button>
@@ -454,34 +277,22 @@ export default function Portfolio() {
 
   if (screen === "admin") {
     return (
-      <div className="pf-root" style={{ minHeight: "100vh", padding: "80px 20px 40px" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
+      <div className="min-h-screen bg-[#0b0b0b] px-5 py-20 text-white">
+        <div className="mx-auto max-w-[1100px]">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p style={{ ...mono, fontSize: "10px", color: "#a7a7a7", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#a7a7a7]">
                 Admin dashboard
               </p>
-              <h2 style={{ ...syne, fontSize: "32px", margin: "8px 0 0" }}>ziggy.dev</h2>
+              <h2 className="font-syne mt-2 text-3xl text-white">ziggy.dev</h2>
             </div>
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+
+            <div className="flex flex-wrap gap-2.5">
               <a
                 href="https://wa.me/2348026977877?text=Hello%20Ziggy"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  ...mono,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "#25D366",
-                  color: "#08150d",
-                  border: "none",
-                  padding: "10px 14px",
-                  textDecoration: "none",
-                  fontSize: "10px",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
+                className="font-mono inline-flex items-center justify-center bg-[#25D366] px-3.5 py-2.5 text-[10px] uppercase tracking-[0.08em] text-[#08150d]"
               >
                 WhatsApp
               </a>
@@ -489,33 +300,23 @@ export default function Portfolio() {
               <button
                 type="button"
                 onClick={handleAdminBack}
-                style={{
-                  ...mono,
-                  background: "transparent",
-                  color: "#d0d0d0",
-                  border: "1px solid #2a2a2a",
-                  padding: "10px 14px",
-                  cursor: "pointer",
-                  fontSize: "10px",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
+                className="font-mono border border-[#2a2a2a] bg-transparent px-3.5 py-2.5 text-[10px] uppercase tracking-[0.08em] text-[#d0d0d0] hover:border-white hover:text-white"
               >
                 Back to portfolio
               </button>
             </div>
           </div>
 
-          <section style={{ padding: "24px 0" }}>
-            <div style={{ marginBottom: "30px", border: "1px solid #1a1a1a", background: "#0d0d0d", padding: "18px" }}>
-              <p style={{ ...mono, fontSize: "10px", color: "#a7a7a7", letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 18px" }}>
+          <section className="py-6">
+            <div className="mb-8 border border-[#1a1a1a] bg-[#0d0d0d] p-4.5">
+              <p className="font-mono mb-4 text-[10px] uppercase tracking-[0.18em] text-[#a7a7a7]">
                 Update socials
               </p>
 
-              <div style={{ display: "grid", gap: "14px" }}>
+              <div className="grid gap-3.5">
                 {socialLinks.map((social, index) => (
-                  <div key={social.label} style={{ display: "grid", gap: "8px", padding: "12px", border: "1px solid #1b1b1b", background: "#0a0a0a" }}>
-                    <label style={{ ...mono, fontSize: "9px", color: "#8e8e8e", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                  <div key={social.label} className="grid gap-2 border border-[#1b1b1b] bg-[#0a0a0a] p-3">
+                    <label className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#8e8e8e]">
                       {social.label}
                     </label>
 
@@ -523,50 +324,25 @@ export default function Portfolio() {
                       value={social.handle}
                       onChange={(event) => handleSocialLinkChange(index, "handle", event.target.value)}
                       placeholder="Handle text"
-                      style={{
-                        background: "#111",
-                        color: "#f2f2f2",
-                        border: "1px solid #2b2b2b",
-                        padding: "10px 12px",
-                        fontSize: "14px",
-                      }}
+                      className="border border-[#2b2b2b] bg-[#111] px-3 py-2.5 text-sm text-white outline-none placeholder:text-[#7a7a7a]"
                     />
 
                     <input
                       value={social.url}
                       onChange={(event) => handleSocialLinkChange(index, "url", event.target.value)}
                       placeholder="https://example.com"
-                      style={{
-                        background: "#111",
-                        color: "#f2f2f2",
-                        border: "1px solid #2b2b2b",
-                        padding: "10px 12px",
-                        fontSize: "14px",
-                      }}
+                      className="border border-[#2b2b2b] bg-[#111] px-3 py-2.5 text-sm text-white outline-none placeholder:text-[#7a7a7a]"
                     />
                   </div>
                 ))}
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "18px" }}>
+            <div className="mb-4 flex justify-end">
               <button
                 type="button"
                 onClick={() => setShowForm((value) => !value)}
-                style={{
-                  ...mono,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  background: "#111",
-                  color: "#f5f5f5",
-                  border: "1px solid #2a2a2a",
-                  padding: "10px 14px",
-                  cursor: "pointer",
-                  fontSize: "10px",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
+                className="font-mono inline-flex items-center gap-2 border border-[#2a2a2a] bg-[#111] px-3.5 py-2.5 text-[10px] uppercase tracking-[0.08em] text-[#f5f5f5] hover:border-white"
               >
                 <Plus size={12} />
                 Add project
@@ -574,29 +350,13 @@ export default function Portfolio() {
             </div>
 
             {showForm && (
-              <form
-                onSubmit={handleAddProject}
-                style={{
-                  display: "grid",
-                  gap: "12px",
-                  padding: "18px",
-                  marginBottom: "20px",
-                  background: "#0c0c0c",
-                  border: "1px solid #1a1a1a",
-                }}
-              >
+              <form onSubmit={handleAddProject} className="mb-5 grid gap-3 border border-[#1a1a1a] bg-[#0c0c0c] p-4.5">
                 <input
                   name="title"
                   value={projectForm.title}
                   onChange={handleProjectChange}
                   placeholder="Project title"
-                  style={{
-                    background: "#111",
-                    color: "#f2f2f2",
-                    border: "1px solid #2b2b2b",
-                    padding: "12px 14px",
-                    fontSize: "14px",
-                  }}
+                  className="border border-[#2b2b2b] bg-[#111] px-3.5 py-3 text-sm text-white outline-none placeholder:text-[#7a7a7a]"
                 />
 
                 <textarea
@@ -605,14 +365,7 @@ export default function Portfolio() {
                   onChange={handleProjectChange}
                   placeholder="Short project description"
                   rows={3}
-                  style={{
-                    background: "#111",
-                    color: "#f2f2f2",
-                    border: "1px solid #2b2b2b",
-                    padding: "12px 14px",
-                    fontSize: "14px",
-                    resize: "vertical",
-                  }}
+                  className="resize-y border border-[#2b2b2b] bg-[#111] px-3.5 py-3 text-sm text-white outline-none placeholder:text-[#7a7a7a]"
                 />
 
                 <input
@@ -620,13 +373,7 @@ export default function Portfolio() {
                   value={projectForm.tags}
                   onChange={handleProjectChange}
                   placeholder="Tags, separated by commas"
-                  style={{
-                    background: "#111",
-                    color: "#f2f2f2",
-                    border: "1px solid #2b2b2b",
-                    padding: "12px 14px",
-                    fontSize: "14px",
-                  }}
+                  className="border border-[#2b2b2b] bg-[#111] px-3.5 py-3 text-sm text-white outline-none placeholder:text-[#7a7a7a]"
                 />
 
                 <input
@@ -634,29 +381,13 @@ export default function Portfolio() {
                   value={projectForm.url}
                   onChange={handleProjectChange}
                   placeholder="Project URL (optional)"
-                  style={{
-                    background: "#111",
-                    color: "#f2f2f2",
-                    border: "1px solid #2b2b2b",
-                    padding: "12px 14px",
-                    fontSize: "14px",
-                  }}
+                  className="border border-[#2b2b2b] bg-[#111] px-3.5 py-3 text-sm text-white outline-none placeholder:text-[#7a7a7a]"
                 />
 
-                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <div className="flex flex-wrap gap-2.5">
                   <button
                     type="submit"
-                    style={{
-                      ...mono,
-                      background: "#f5f5f5",
-                      color: "#111",
-                      border: "none",
-                      padding: "10px 14px",
-                      cursor: "pointer",
-                      fontSize: "10px",
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                    }}
+                    className="font-mono border border-[#f5f5f5] bg-[#f5f5f5] px-3.5 py-2.5 text-[10px] uppercase tracking-[0.08em] text-[#111]"
                   >
                     Save project
                   </button>
@@ -664,17 +395,7 @@ export default function Portfolio() {
                   <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    style={{
-                      ...mono,
-                      background: "transparent",
-                      color: "#d0d0d0",
-                      border: "1px solid #2a2a2a",
-                      padding: "10px 14px",
-                      cursor: "pointer",
-                      fontSize: "10px",
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                    }}
+                    className="font-mono border border-[#2a2a2a] bg-transparent px-3.5 py-2.5 text-[10px] uppercase tracking-[0.08em] text-[#d0d0d0]"
                   >
                     Cancel
                   </button>
@@ -682,31 +403,20 @@ export default function Portfolio() {
               </form>
             )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: "1px", background: "#161616" }}>
+            <div className="grid gap-px bg-[#161616]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))" }}>
               {projects.map((p, i) => (
                 <div
                   key={p.id}
-                  className="pj-card"
                   onClick={() => openProject(p.url)}
-                  style={{
-                    background: p.isPlaceholder ? "#0a0a0a" : "#000",
-                    padding: "28px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    transition: "background 0.18s",
-                    cursor: p.url ? "pointer" : "default",
-                    minHeight: "210px",
-                    border: p.isPlaceholder ? "1px dashed #1b1b1b" : "1px solid #0f0f0f",
-                    boxSizing: "border-box",
-                    position: "relative",
-                  }}
+                  className={`relative flex min-h-[210px] cursor-pointer flex-col gap-2.5 border p-7 transition-colors duration-200 ${
+                    p.isPlaceholder ? "border-dashed border-[#1b1b1b] bg-[#0a0a0a]" : "border-[#0f0f0f] bg-black"
+                  } hover:bg-[#0d0d0d]`}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <span style={{ ...mono, fontSize: "10px", color: "#1e1e1e" }}>{String(i + 1).padStart(2, "0")}</span>
+                  <div className="flex items-start justify-between">
+                    <span className="font-mono text-[10px] text-[#1e1e1e]">{String(i + 1).padStart(2, "0")}</span>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      {p.url && <ExternalLink size={12} className="pj-icon" style={{ stroke: "#2a2a2a", transition: "stroke 0.15s", flexShrink: 0 }} />}
+                    <div className="flex items-center gap-2">
+                      {p.url && <ExternalLink size={12} className="stroke-[#2a2a2a] transition-colors hover:stroke-[#666]" />}
 
                       <button
                         type="button"
@@ -715,30 +425,24 @@ export default function Portfolio() {
                           handleDeleteProject(p.id);
                         }}
                         aria-label={`Delete ${p.title}`}
-                        style={{
-                          background: "transparent",
-                          border: "1px solid #2a2a2a",
-                          color: "#b0b0b0",
-                          width: "22px",
-                          height: "22px",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          padding: 0,
-                        }}
+                        className="inline-flex h-[22px] w-[22px] items-center justify-center border border-[#2a2a2a] bg-transparent p-0 text-[#b0b0b0]"
                       >
                         <Trash2 size={12} />
                       </button>
                     </div>
                   </div>
 
-                  <h3 className="pj-title" style={{ ...syne, fontSize: "15px", fontWeight: 700, color: "#e6e6e6", margin: 0, transition: "color 0.18s" }}>{p.title}</h3>
-                  <p style={{ fontSize: "12px", color: "#b8b8b8", lineHeight: 1.7, margin: 0, flex: 1 }}>{p.desc}</p>
+                  <h3 className="font-syne text-[15px] font-bold text-[#e6e6e6] transition-colors hover:text-white">
+                    {p.title}
+                  </h3>
 
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  <p className="flex-1 text-[12px] leading-7 text-[#b8b8b8]">{p.desc}</p>
+
+                  <div className="flex flex-wrap gap-1">
                     {p.tags.map((t) => (
-                      <span key={`${p.id}-${t}`} style={{ ...mono, fontSize: "9px", border: "1px solid #181818", padding: "2px 6px", color: "#2d2d2d", letterSpacing: "0.04em" }}>{t}</span>
+                      <span key={`${p.id}-${t}`} className="font-mono border border-[#181818] px-1.5 py-0.5 text-[9px] tracking-[0.04em] text-[#2d2d2d]">
+                        {t}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -751,65 +455,22 @@ export default function Portfolio() {
   }
 
   return (
-    <div className="pf-root">
-
-      {/* ── NAV ──────────────────────────────────────────── */}
-
-      <nav
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 99,
-          background: "rgba(0,0,0,0.92)",
-          backdropFilter: "blur(10px)",
-          borderBottom: "1px solid #111",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px 40px",
-        }}
-      >
+    <div className="min-h-screen bg-[#0b0b0b] text-white">
+      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-[#111] bg-black/90 px-10 py-4 backdrop-blur-md">
         <button
           type="button"
           onClick={() => setScreen("login")}
-          style={{
-            ...mono,
-            fontSize: "11px",
-            color: "#333",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-          }}
+          className="font-mono cursor-pointer border-none bg-transparent p-0 text-[11px] text-[#333] hover:text-[#555]"
         >
-          <span style={{ color: "#555" }}>ziggy</span>.dev
+          <span className="text-[#555]">ziggy</span>.dev
         </button>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "28px",
-          }}
-        >
+        <div className="flex gap-7">
           {["skills", "projects", "contact"].map((id) => (
             <button
               key={id}
-              className="nav-link"
+              className="nav-link font-mono cursor-pointer border-none bg-transparent p-0 text-[11px] uppercase tracking-[0.08em] text-[#3a3a3a] transition-colors hover:text-white"
               onClick={() => scrollTo(id)}
-              style={{
-                ...mono,
-                background: "none",
-                border: "none",
-                color: "#3a3a3a",
-                cursor: "pointer",
-                fontSize: "11px",
-                letterSpacing: "0.08em",
-                textTransform: "capitalize",
-                transition: "color 0.2s",
-                padding: 0,
-              }}
             >
               {id}
             </button>
@@ -817,112 +478,36 @@ export default function Portfolio() {
         </div>
       </nav>
 
-      {/* ── HERO ─────────────────────────────────────────── */}
-
-      <section
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-          padding: "120px 40px 60px",
-          ...line,
-        }}
-      >
-        <p
-          style={{
-            ...eye,
-            marginBottom: "20px",
-          }}
-        >
+      <section className="flex min-h-screen flex-col justify-end border-b border-[#111] px-10 pb-16 pt-[120px]">
+        <p className="font-mono mb-5 text-[10px] uppercase tracking-[0.18em] text-[#444]">
           Frontend Dev · Python Learner · Security Learner
         </p>
 
-        <h1
-          style={{
-            ...syne,
-            fontSize: "clamp(68px,15vw,180px)",
-            fontWeight: 800,
-            lineHeight: 0.88,
-            letterSpacing: "-0.04em",
-            margin: "0 0 44px",
-          }}
-        >
-          ZIGGY<span className="cur" />
+        <h1 className="font-syne mb-11 text-[clamp(68px,15vw,180px)] font-extrabold leading-[0.88] tracking-[-0.04em] text-white">
+          ZIGGY<span className="cursor-blink ml-1 inline-block h-[0.83em] w-[0.07em] align-middle bg-white" />
         </h1>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            gap: "20px",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "clamp(13px,1.5vw,17px)",
-              color: "#cfcfcf",
-              maxWidth: "400px",
-              lineHeight: 1.7,
-              margin: 0,
-            }}
-          >
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <p className="m-0 max-w-[400px] text-[clamp(13px,1.5vw,17px)] leading-7 text-[#cfcfcf]">
             Building real things from Plateau State, Jos —
             <br />
             one commit at a time.
           </p>
 
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              flexWrap: "wrap",
-            }}
-          >
+          <div className="flex flex-wrap gap-2.5">
             <a
               href="https://github.com/gokwatnenpin-dotcom"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-solid"
-              style={{
-                ...mono,
-                display: "flex",
-                alignItems: "center",
-                gap: "7px",
-                border: "1px solid #fff",
-                padding: "11px 20px",
-                fontSize: "11px",
-                fontWeight: 700,
-                color: "#fff",
-                textDecoration: "none",
-                transition: "all 0.2s",
-                letterSpacing: "0.06em",
-              }}
+              className="btn-solid font-mono inline-flex items-center gap-2 border border-white px-5 py-3 text-[11px] font-bold uppercase tracking-[0.06em] text-white transition hover:bg-white hover:text-black"
             >
               <ExternalLink size={13} />
               GitHub
             </a>
 
             <button
-              className="btn-ghost"
               onClick={() => scrollTo("projects")}
-              style={{
-                ...mono,
-                display: "flex",
-                alignItems: "center",
-                gap: "7px",
-                border: "1px solid #222",
-                padding: "11px 20px",
-                fontSize: "11px",
-                fontWeight: 700,
-                color: "#555",
-                background: "transparent",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                letterSpacing: "0.06em",
-              }}
+              className="btn-ghost font-mono inline-flex cursor-pointer items-center gap-2 border border-[#222] bg-transparent px-5 py-3 text-[11px] font-bold uppercase tracking-[0.06em] text-[#555] transition hover:border-white hover:text-white"
             >
               View Work
               <ChevronDown size={12} />
@@ -931,29 +516,10 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* ── ABOUT ────────────────────────────────────────── */}
+      <section className="grid grid-cols-[140px_1fr] gap-10 border-b border-[#111] px-10 py-16">
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#444]">About</p>
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "140px 1fr",
-          gap: "40px",
-          padding: "64px 40px",
-          ...line,
-          alignItems: "start",
-        }}
-      >
-        <p style={eye}>About</p>
-
-        <p
-          style={{
-            fontSize: "clamp(15px,1.8vw,20px)",
-            fontWeight: 600,
-            color: "#d1d1d1",
-            lineHeight: 1.65,
-            margin: 0,
-          }}
-        >
+        <p className="m-0 text-[clamp(15px,1.8vw,20px)] font-semibold leading-[1.65] text-[#d1d1d1]">
           Self-directed developer from Nigeria. I learn by building — real
           projects, Hack The Box challenges, and late-night debugging sessions.
           Currently going deep on cybersecurity while keeping my frontend
@@ -961,178 +527,54 @@ export default function Portfolio() {
         </p>
       </section>
 
-      {/* ── SKILLS ───────────────────────────────────────── */}
+      <section id="skills" className="border-b border-[#111] px-10 py-16">
+        <p className={eyeClass}>Skills</p>
 
-      <section
-        id="skills"
-        style={{
-          padding: "64px 40px",
-          ...line,
-        }}
-      >
-        <p style={eye}>Skills</p>
-
-        <h2 style={H2}>
+        <h2 className={H2Class}>
           What I Know &
           <br />
           What I'm Learning
         </h2>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "32px",
-          }}
-        >
-          {/* Mastered */}
-
+        <div className="grid gap-8 md:grid-cols-2">
           <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "20px",
-              }}
-            >
-              <div
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: "50%",
-                  background: "#fff",
-                  flexShrink: 0,
-                }}
-              />
-
-              <span
-                style={{
-                  ...mono,
-                  fontSize: "9px",
-                  color: "#aaa",
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Mastered
-              </span>
+            <div className="mb-5 flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-white" />
+              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#aaa]">Mastered</span>
             </div>
 
             {LEARNED.map(([name, cat]) => (
               <div
                 key={name}
-                className="sk-row"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "12px 14px",
-                  borderBottom: "1px solid #0f0f0f",
-                  borderLeft: "2px solid transparent",
-                  transition: "all 0.15s",
-                  cursor: "default",
-                }}
+                className="sk-row flex items-center justify-between border-b border-[#0f0f0f] border-l-2 border-l-transparent px-3.5 py-3 transition-colors hover:border-l-white"
               >
-                <span
-                  className="sk-name"
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#d6d6d6",
-                    transition: "color 0.15s",
-                  }}
-                >
+                <span className="sk-name text-[13px] font-semibold text-[#d6d6d6] transition-colors">
                   {name}
                 </span>
 
-                <span
-                  style={{
-                    ...mono,
-                    fontSize: "9px",
-                    color: "#2a2a2a",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                  }}
-                >
+                <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-[#2a2a2a]">
                   {cat}
                 </span>
               </div>
             ))}
           </div>
 
-          {/* Learning */}
-
           <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "20px",
-              }}
-            >
-              <div
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: "50%",
-                  background: "#333",
-                  animation: "pulse 2s ease infinite",
-                  flexShrink: 0,
-                }}
-              />
-
-              <span
-                style={{
-                  ...mono,
-                  fontSize: "9px",
-                  color: "#3a3a3a",
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                }}
-              >
-                In Progress
-              </span>
+            <div className="mb-5 flex items-center gap-2">
+              <div className="pulse-dot h-1.5 w-1.5 rounded-full bg-[#333]" />
+              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#3a3a3a]">In Progress</span>
             </div>
 
             {LEARNING.map(([name, cat]) => (
               <div
                 key={name}
-                className="sk-row"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "12px 14px",
-                  borderBottom: "1px solid #0d0d0d",
-                  borderLeft: "2px dashed transparent",
-                  transition: "all 0.15s",
-                  cursor: "default",
-                }}
+                className="sk-row flex items-center justify-between border-b border-[#0d0d0d] border-l-2 border-l-transparent px-3.5 py-3 transition-colors hover:border-l-white"
               >
-                <span
-                  className="sk-name"
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#bdbdbd",
-                    transition: "color 0.15s",
-                  }}
-                >
+                <span className="sk-name text-[13px] font-semibold text-[#bdbdbd] transition-colors">
                   {name}
                 </span>
 
-                <span
-                  style={{
-                    ...mono,
-                    fontSize: "9px",
-                    color: "#222",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                  }}
-                >
+                <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-[#222]">
                   {cat}
                 </span>
               </div>
@@ -1141,179 +583,68 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* ── PROJECTS ─────────────────────────────────────── */}
+      <section id="projects" className="relative overflow-hidden border-b border-[#111] px-10 py-16">
+        <div className="pointer-events-none absolute inset-x-0 top-8 hidden text-center md:block">
+          <span className="font-syne text-[clamp(10rem,26vw,34rem)] leading-none tracking-[-0.07em] text-[#111111] opacity-80">
+            P
+          </span>
+        </div>
 
-      <section
-        id="projects"
-        style={{
-          padding: "64px 40px",
-          ...line,
-        }}
-      >
-        <p style={eye}>Projects</p>
+        <div className="relative z-10">
+          <p className={eyeClass}>Projects</p>
 
-        <h2 style={H2}>Things I've Built</h2>
+          <h2 className={H2Class}>Things I've Built</h2>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fill, minmax(270px, 1fr))",
-            gap: "1px",
-            background: "#161616",
-          }}
-        >
-          {projects.map((p, i) => (
-            <div
-              key={p.id}
-              className="pj-card"
-              onClick={() => openProject(p.url)}
-              style={{
-                background: p.isPlaceholder ? "#0a0a0a" : "#000",
-                padding: "28px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-                transition: "background 0.18s",
-                cursor: p.url ? "pointer" : "default",
-                minHeight: "210px",
-                border: p.isPlaceholder ? "1px dashed #1b1b1b" : "1px solid #0f0f0f",
-                boxSizing: "border-box",
-                position: "relative",
-              }}
-            >
+          <div className="grid gap-px bg-[#161616]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))" }}>
+            {projects.map((p, i) => (
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                }}
+                key={p.id}
+                onClick={() => openProject(p.url)}
+                className={`pj-card relative flex min-h-[210px] cursor-pointer flex-col gap-2.5 border p-7 transition-colors duration-200 ${
+                  p.isPlaceholder ? "border-dashed border-[#1b1b1b] bg-[#0a0a0a]" : "border-[#0f0f0f] bg-black"
+                } hover:bg-[#0d0d0d]`}
               >
-                <span
-                  style={{
-                    ...mono,
-                    fontSize: "10px",
-                    color: "#1e1e1e",
-                  }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
+                <div className="flex items-start justify-between">
+                  <span className="font-mono text-[10px] text-[#1e1e1e]">{String(i + 1).padStart(2, "0")}</span>
+                  {p.url && <ExternalLink size={12} className="pj-icon stroke-[#2a2a2a] transition-colors duration-200 hover:stroke-[#666]" />}
+                </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  {p.url && (
-                    <ExternalLink
-                      size={12}
-                      className="pj-icon"
-                      style={{
-                        stroke: "#2a2a2a",
-                        transition: "stroke 0.15s",
-                        flexShrink: 0,
-                      }}
-                    />
-                  )}
+                <h3 className="pj-title font-syne text-[15px] font-bold text-[#e6e6e6] transition-colors duration-200 hover:text-white">
+                  {p.title}
+                </h3>
+
+                <p className="flex-1 text-[12px] leading-7 text-[#b8b8b8]">{p.desc}</p>
+
+                <div className="flex flex-wrap gap-1">
+                  {p.tags.map((t) => (
+                    <span key={`${p.id}-${t}`} className="font-mono border border-[#181818] px-1.5 py-0.5 text-[9px] tracking-[0.04em] text-[#2d2d2d]">
+                      {t}
+                    </span>
+                  ))}
                 </div>
               </div>
-
-              <h3
-                className="pj-title"
-                style={{
-                  ...syne,
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  color: "#e6e6e6",
-                  margin: 0,
-                  transition: "color 0.18s",
-                }}
-              >
-                {p.title}
-              </h3>
-
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "#b8b8b8",
-                  lineHeight: 1.7,
-                  margin: 0,
-                  flex: 1,
-                }}
-              >
-                {p.desc}
-              </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "4px",
-                }}
-              >
-                {p.tags.map((t) => (
-                  <span
-                    key={`${p.id}-${t}`}
-                    style={{
-                      ...mono,
-                      fontSize: "9px",
-                      border: "1px solid #181818",
-                      padding: "2px 6px",
-                      color: "#2d2d2d",
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── CONTACT ──────────────────────────────────────── */}
+      <section id="contact" className="px-10 py-16">
+        <p className={eyeClass}>Contact</p>
 
-      <section
-        id="contact"
-        style={{
-          padding: "64px 40px",
-        }}
-      >
-        <p style={eye}>Contact</p>
+        <h2 className={H2Class}>Let's Connect</h2>
 
-        <h2 style={H2}>Let's Connect</h2>
-
-        <p
-          style={{
-            fontSize: "15px",
-            color: "#c8c8c8",
-            lineHeight: 1.7,
-            maxWidth: "360px",
-            marginBottom: "32px",
-          }}
-        >
+        <p className="mb-8 max-w-[360px] text-[15px] leading-7 text-[#c8c8c8]">
           If you want to collaborate, send your details below and I’ll get
           back to you.
         </p>
 
-        <form
-          onSubmit={handleCollabSubmit}
-          style={{
-            display: "grid",
-            gap: "10px",
-            maxWidth: "520px",
-            marginBottom: "36px",
-          }}
-        >
+        <form onSubmit={handleCollabSubmit} className="mb-9 grid max-w-[520px] gap-2.5">
           <input
             type="email"
             value={newsletterEmail}
             onChange={(event) => setNewsletterEmail(event.target.value)}
             placeholder="Your email address"
-            style={{
-              background: "#111",
-              color: "#f5f5f5",
-              border: "1px solid #2b2b2b",
-              padding: "12px 14px",
-              fontSize: "14px",
-            }}
+            className="border border-[#2b2b2b] bg-[#111] px-3.5 py-3 text-sm text-[#f5f5f5] placeholder:text-[#6d6d6d] outline-none transition focus:border-white"
           />
 
           <textarea
@@ -1321,164 +652,52 @@ export default function Portfolio() {
             onChange={(event) => setNewsletterMessage(event.target.value)}
             placeholder="Tell me about your project or collaboration idea"
             rows={4}
-            style={{
-              background: "#111",
-              color: "#f5f5f5",
-              border: "1px solid #2b2b2b",
-              padding: "12px 14px",
-              fontSize: "14px",
-              resize: "vertical",
-            }}
+            className="resize-y border border-[#2b2b2b] bg-[#111] px-3.5 py-3 text-sm text-[#f5f5f5] placeholder:text-[#6d6d6d] outline-none transition focus:border-white"
           />
 
           <button
             type="submit"
-            style={{
-              ...mono,
-              background: "#f5f5f5",
-              color: "#111",
-              border: "none",
-              padding: "12px 18px",
-              cursor: "pointer",
-              fontSize: "10px",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              width: "fit-content",
-            }}
+            className="font-mono w-fit border border-[#f5f5f5] bg-[#f5f5f5] px-4.5 py-3 text-[10px] font-bold uppercase tracking-[0.08em] text-[#111] transition hover:bg-white hover:text-black"
           >
             Send Request
           </button>
         </form>
 
         {newsletterStatus && (
-          <p
-            style={{
-              ...mono,
-              fontSize: "10px",
-              color: newsletterStatus.includes("Please") ? "#ffb3b3" : "#d6d6d6",
-              margin: "0 0 28px",
-            }}
-          >
+          <p className={`mb-7 font-mono text-[10px] ${newsletterStatus.includes("Please") ? "text-[#ffb3b3]" : "text-[#d6d6d6]"}`}>
             {newsletterStatus}
           </p>
         )}
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            maxWidth: "440px",
-            background: "#141414",
-            gap: "1px",
-          }}
-        >
+        <div className="flex max-w-[440px] flex-col gap-px bg-[#141414]">
           {socialLinks.map((s) => (
             <a
               key={s.label}
               href={s.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="soc-row"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "20px 22px",
-                background: "#000",
-                textDecoration: "none",
-                borderLeft: "2px solid transparent",
-                transition: "all 0.15s",
-              }}
+              className="soc-row group flex items-center justify-between border-l-2 border-transparent bg-black px-5 py-5 transition-colors hover:border-l-white hover:bg-[#111]"
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "14px",
-                }}
-              >
-                <s.Icon
-                  size={16}
-                  style={{
-                    stroke: "#444",
-                    transition: "stroke 0.15s",
-                    flexShrink: 0,
-                  }}
-                />
+              <div className="flex items-center gap-3.5">
+                <s.Icon size={16} className="stroke-[#444] transition-colors duration-200 group-hover:stroke-white" />
 
                 <div>
-                  <p
-                    className="soc-label"
-                    style={{
-                      ...syne,
-                      margin: 0,
-                      fontWeight: 700,
-                      fontSize: "13px",
-                      color: "#e7e7e7",
-                      transition: "color 0.15s",
-                    }}
-                  >
+                  <p className="soc-label font-syne m-0 text-[13px] font-bold text-[#e7e7e7] transition-colors duration-200">
                     {s.label}
                   </p>
 
-                  <p
-                    style={{
-                      ...mono,
-                      margin: 0,
-                      fontSize: "10px",
-                      color: "#b0b0b0",
-                      marginTop: "2px",
-                    }}
-                  >
-                    {s.handle}
-                  </p>
+                  <p className="font-mono mt-0.5 text-[10px] text-[#b0b0b0]">{s.handle}</p>
                 </div>
               </div>
 
-              <ExternalLink
-                size={11}
-                style={{
-                  stroke: "#2a2a2a",
-                  flexShrink: 0,
-                }}
-              />
+              <ExternalLink size={11} className="stroke-[#2a2a2a]" />
             </a>
           ))}
         </div>
 
-        {/* Footer */}
-
-        <div
-          style={{
-            marginTop: "80px",
-            paddingTop: "20px",
-            borderTop: "1px solid #0d0d0d",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "8px",
-          }}
-        >
-          <span
-            style={{
-              ...mono,
-              fontSize: "10px",
-              color: "#222",
-            }}
-          >
-            © 2026 Ziggy — Built with React
-          </span>
-
-          <span
-            style={{
-              ...mono,
-              fontSize: "10px",
-              color: "#b6b6b6",
-            }}
-          >
-            Plateau State, Jos 🇳🇬
-          </span>
+        <div className="mt-20 flex flex-wrap items-center justify-between gap-2 border-t border-[#0d0d0d] pt-5">
+          <span className="font-mono text-[10px] text-[#222]">© 2026 Ziggy — Built with React</span>
+          <span className="font-mono text-[10px] text-[#b6b6b6]">Plateau State, Jos 🇳🇬</span>
         </div>
       </section>
     </div>
