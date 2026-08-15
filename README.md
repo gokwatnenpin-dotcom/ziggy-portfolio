@@ -13,8 +13,9 @@ This site showcases:
 - React
 - Vite
 - JavaScript
-- CSS
+- TailwindCss
 - Lucide icons
+- Supabase
 
 ## What is on the site
 - Hero section with intro and CTA buttons
