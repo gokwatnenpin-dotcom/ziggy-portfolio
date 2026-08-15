@@ -123,15 +123,17 @@ export default function App() {
     const desc = projectForm.desc.trim();
     if (!title || !desc) return;
 
+    const tags = projectForm.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .slice(0, 5);
+
     const nextProject = {
       id: `project-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       title,
       desc,
-      tags: projectForm.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean)
-        .slice(0, 5) || ["New Project"],
+      tags: tags.length ? tags : ["New Project"],
       url: projectForm.url.trim() || null,
     };
 
